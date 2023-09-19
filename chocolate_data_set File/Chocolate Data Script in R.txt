@@ -1,0 +1,149 @@
+# Reading data into R:
+"""
+1. Type of Data Structure the data is in (List, Trees, Vectors)
+2. Where to find the data. (Data_Frame Data Structure -> Tibble)
+3. To use data structure: Package; tidyverse
+"""
+
+>>>library(tidyverse)
+>>>chocolate_datafile <- read_csv("path.csv")
+
+# Changes the column names to versions without spaces.
+# names(chocolate_datafile) <- gsub("[[:space:]+]", "_", names(chocolate_datafile)) or
+
+>>>names(chocolate_datafile)<- make.names(names(chocolate_datafile), unique = TRUE)
+
+# retrieving data from other csv.
+
+>>> foodPreferences <- read_csv("../input/food-choices/food_coded.csv")
+>>> names(foodPreferences) <- make.names(names(foodPreferences),unique=TRUE) 
+
+# Use `spec()` to retrieve the full column specification for this data.
+# Specify the column types or set `show_col_types = FALSE` to quiet this message.
+
+#Looking into Data
+>>>head(chocolate_datafile, 5)
+>>>tail(chocolate_datafile, 5)
+>>>head(foodPreferences, 5)
+>>>tail(foodPreferences, 5)
+
+>>>chocolate_datafile[6,4] # 6th row and 4th column
+>>>chocolate_datafile[6,] # entire 6th row
+>>>head(chocolate_datafile[6]) # entire 6th column, and using head will restrict the column wise row data.
+>>>foodPreferences[1,]
+>>>foodPreferences[100,4]
+
+# Removing unwanted Data
+# we can do this by putting a minus sign (-) in front of the index you don't want.
+
+>>>head(chocolate_datfile)
+>>>chocolate_datafile[-1,] # in order to permanently change the data, assign a different variable, overwritng the data use same variable
+>>>head(chocolate_datafile)
+>>>head(foodPreferences)
+>>>foodPreferences[-5] # in order to permanently change the data, assign a different variable, overwriting the data use same variable
+>>>head(foodPreferences)
+
+# Use the str() function to check the data type of the columns in chocolate_datafile
+
+>>>str(chocolate_datafile)
+
+#print the first few values from the column named "Rating" in the dataframe "chocolate_datafile"
+
+>>>head(chocolate_datafile$Rating)
+
+#automatically convert the data types of our data_frame
+
+>>>chocolate_datafile <- type_convert(chocolate_datafile)
+
+#remove all the percent signs in the fifth column. Because it is making it character datatye instead it should be numerical 
+
+chocolate_datafile$Cocoa.Percent <- sapply(chocolate_datafile$Cocoa.Percent, function(x) gsub("%", "", x))
+
+# try the type_convert() function agian
+
+>>>chocolate_datafile <- type_convert(chocolate_datafile)
+
+# check the structure to make sure it actually is a percent
+
+>>>str(chocolate_datafile)
+
+# summary function from base R (base R means no packages)
+
+>>>summary(chocolate_datafile)
+
+# summary function from the Tidyverse (specifically dplyr). To use this function, you need
+# to tell it what dataset to summarize and also what function to use. In this case I'm
+# asking for the average using the function mean()
+
+>>>summarise_all(chocolate_datafile, funs(mean))
+
+# Use the summarise_all() function to find the standard deviation of each numeric column.
+
+>>>summarise_all(chocolate_datafile, funs(sd))
+
+# return a data_frame with the mean and sd of the Rating column,
+#A pipe, which looks like this: %>% is a special operator. 
+#It takes all the output from the right side and passes it to whatever is on the left side.
+
+>>>chocolate_datafile %>% 
+	summarise(
+	averageRating = mean(Rating), 
+	sdRating = sd(Rating)
+	)
+>>>chocolateData %>%
+	summarise(
+	avg_cocoa_percent = mean(Cocoa.Percent),
+	sd_cocoa_percent = sd(Cocoa.Percent)
+	)
+# Summarize a specific variable using group_by hand in function.
+>>>chocolate_datafile %>%
+	group_by(Review.Date) %>%
+	summarise(
+	average_Rating = mean(Rating),
+        sd_Rating = sd(Rating)
+	)
+>>>chocolate_datafile %>%
+	group_by(Review.Date)%>%
+	summarise(
+	average_Cocoa.Rating = mean(Cocoa.Rating),
+	sd_Cocoa.Rating = sd(Cocoa.rating)
+	)
+
+# gg- "The graphic of grammer" in ggplot2, aes() function- Aesthetic
+# draw a blank plot with "Review_Date" as the x axis and "Rating" as the y axis.
+
+>>>ggplot(chocolate_datafile, aes(x= Review.Date, y = Rating))
+
+# draw a plot with "Review_Date" as the x axis and "Rating" as the y axis, and add a point for each data point
+
+>>>ggplot(chocolate_datafile, aes(x= Review.Date, y = Rating)) + geom_point()
+
+# draw a plot with "Review_Date" as the x axis and "Rating" as the y axis, 
+# add a point for each data point & move each point slightly so they don't overlap
+
+>>>ggplot(chocolate_datafile, aes(x= Review_Date, y = Rating)) + geom_point() + geom_jitter()
+
+# draw a plot with "Review_Date" as the x axis and "Rating" as the y axis, add a point for each data point, 
+# move each point slightly so they don't overlap and add a smoothed line (lm = linear model)
+
+>>>ggplot(chocolate_datafile, aes(x=Review.Date, y= Rating)) + geom_point() + geom_jitter() + geom_smooth(method = 'lm')
+
+# draw a plot with "Review_Date" as the x axis and "Rating" as the y axis, add a point for each data point, 
+# move each point slightly so they don't overlap and add a smoothed line (lm = linear model). 
+# Encode Cocoa_Percent as color.
+
+>>>ggplot(chocolate_datafile, aes(x= Review.Date, y= Rating, color = Cocoa.Percent)) + geom_point() + geom_jitter() + geom_smooth(method= 'lm')
+
+# save our plot to a variable with an informative name
+>>>chocolateRatingByReviewDate <- ggplot(chocolate_datafile, aes(x= Review.Date, y = Rating, color = Cocoa.Percent)) + 
+    geom_point() + 
+    geom_jitter() +
+    geom_smooth(method = 'lm')
+
+# save our plot
+>>>ggsave("chocolateRatingByReviewDate.png", # the name of the file where it will be save
+       plot = chocolateRatingByReviewDate, # what plot to save
+       height=6, width=10, units="in") # the size of the plot & units of the size
+
+# ggtitle(): Add a title to your plot
+# geom_line(): plot line
